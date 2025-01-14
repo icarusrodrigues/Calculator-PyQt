@@ -1,2 +1,2 @@
 # Calculator-PyQt
-App de uma calculadora implementada com Python usando a biblioteca PyQt
+Calculator app implemented with Python using the PyQt library
