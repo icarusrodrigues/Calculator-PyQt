@@ -4,7 +4,7 @@ from variables import MEDIUM_FONT_SIZE
 from utils import isNumOrDot, isEmpty, isValidNumber
 from display import Display
 from info import Info
-from math import e
+from math import e, pow
 
 from typing import TYPE_CHECKING
 
@@ -75,7 +75,10 @@ class ButtonsGrid(QGridLayout):
         if text == "C":
             self._connectButtonClicked(button, self._clear)
 
-        if text in "+-*/":
+        if text == "◄":
+            self._connectButtonClicked(button, self.display.backspace)
+
+        if text in "+-*/^":
             self._connectButtonClicked(button, self._makeSlot(self._operatorClicked, button))
 
         if text == "=":
@@ -116,7 +119,7 @@ class ButtonsGrid(QGridLayout):
             return
 
         if self._left is None:
-            self._left = displayText
+            self._left = float(displayText)
         
         self._operator = buttonText
         self.equation = f"{self._left} {self._operator} ??"
@@ -132,11 +135,20 @@ class ButtonsGrid(QGridLayout):
         result = 0.0
 
         try:
-            result = eval(self.equation)
+            if "^" in self._operator:
+                result = pow(self._left, self._right)
+            else:
+                result = eval(self.equation)
         except ZeroDivisionError:
             self.display.setText("Division by zero")
             return
-        
+        except OverflowError:
+            self.display.setText("Too large number")
+            return
+
         self.display.setText(str(result))
         self.equation = f"{self._left} {self._operator} {self._right} = {result}"
         self._left = result
+        self._right = None
+        self._operator = None
+        self.display.clear()
