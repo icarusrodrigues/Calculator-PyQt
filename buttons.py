@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QPushButton, QGridLayout
 from PySide6.QtCore import Slot
 from variables import MEDIUM_FONT_SIZE
-from utils import isNumOrDot, isEmpty, isValidNumber
+from utils import isNumOrDot, isValidNumber
 from display import Display
 from info import Info
 from math import e, pow
@@ -40,6 +40,7 @@ class ButtonsGrid(QGridLayout):
         self._left = None
         self._right = None
         self._operator = None
+        self._isEquationFinished = False
 
         self._makeGrid()
     
@@ -57,11 +58,12 @@ class ButtonsGrid(QGridLayout):
             for buttonText in row:
                 button = Button(buttonText)
 
-                if not isNumOrDot(buttonText) and not isEmpty(buttonText):
+                self.addWidget(button, self._grid_mask.index(row), row.index(buttonText))
+
+                if not isNumOrDot(buttonText):
                     button.setProperty("cssClass", "specialButton")
                     self._configSpecialButton(button)
-
-                self.addWidget(button, self._grid_mask.index(row), row.index(buttonText))
+                    continue
 
                 slot = self._makeSlot(self._insertButtonTextToDisplay, button)
                 self._connectButtonClicked(button, slot)
@@ -92,6 +94,13 @@ class ButtonsGrid(QGridLayout):
         
     def _insertButtonTextToDisplay(self, button):
         buttonText = button.text()
+
+        if self._isEquationFinished and self._operator is None:
+            self._clear()
+        
+        if buttonText == "." and len(self.display.text()) == 0:
+            self.display.insert("0")
+        
         newDisplayValue = self.display.text() + buttonText
 
         if not isValidNumber(newDisplayValue):
@@ -108,11 +117,17 @@ class ButtonsGrid(QGridLayout):
         self._right = None
         self._operator = None
         self.equation = ""
+        self._isEquationFinished = False
         self.display.clear()
 
     def _operatorClicked(self, button):
         buttonText = button.text()
         displayText = self.display.text()
+
+        if self._left is not None and self._operator is not None and isValidNumber(displayText):
+            self._right = float(displayText)
+            self._equal()
+
         self.display.clear()
 
         if not isValidNumber(displayText) and self._left is None:
@@ -125,6 +140,9 @@ class ButtonsGrid(QGridLayout):
         self.equation = f"{self._left} {self._operator} ??"
 
     def _equal(self):
+        if self._left is None or self._operator is None:
+            return
+        
         displayText = self.display.text()
 
         if not isValidNumber(displayText):
@@ -151,4 +169,5 @@ class ButtonsGrid(QGridLayout):
         self._left = result
         self._right = None
         self._operator = None
+        self._isEquationFinished = True
         self.display.clear()

@@ -14,6 +14,3 @@ def isValidNumber(string: str) -> bool:
         return True
     except ValueError:
         return False
-
-def isEmpty(string: str) -> bool:
-    return len(string) == 0
