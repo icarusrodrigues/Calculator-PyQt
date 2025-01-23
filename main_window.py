@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QMessageBox
 
 class MainWindow(QMainWindow):
     def __init__ (self, parent: QWidget| None = None, *args, **kwargs) -> None:
@@ -18,3 +18,6 @@ class MainWindow(QMainWindow):
 
     def addWidgetToVLayout(self, widget):
         self.vLayout.addWidget(widget)
+
+    def makeMsgBox(self):
+        return QMessageBox(self)
