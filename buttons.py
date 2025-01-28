@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QPushButton, QGridLayout
 from PySide6.QtCore import Slot
 from variables import MEDIUM_FONT_SIZE
-from utils import isNumOrDot, isValidNumber
+from utils import isNumOrDot, isValidNumber, convertToNumber
 from display import Display
 from info import Info
 from math import e, pow
@@ -44,6 +44,7 @@ class ButtonsGrid(QGridLayout):
         self._operator = None
         self._isEquationFinished = False
 
+        self.info.setStyleSheet(f"font-size: {MEDIUM_FONT_SIZE}px;")
         self._makeGrid()
     
     @property
@@ -105,6 +106,9 @@ class ButtonsGrid(QGridLayout):
     def _insertTextToDisplay(self, text):
         if self._isEquationFinished and self._operator is None:
             self._clear()
+
+        if text == "-":
+            self.display.insert(text)
         
         if text == "." and len(self.display.text()) == 0:
             self.display.insert("0")
@@ -113,6 +117,8 @@ class ButtonsGrid(QGridLayout):
 
         if not isValidNumber(newDisplayValue):
             return
+        
+        self.display.setFocus()
 
         if text == "e":
             self.display.insert(str(e))
@@ -128,13 +134,19 @@ class ButtonsGrid(QGridLayout):
         self.equation = ""
         self._isEquationFinished = False
         self.display.clear()
+        self.display.setFocus()
 
     @Slot()
     def _configLeftOperation(self, text):
         displayText = self.display.text()
+        self.display.setFocus()
+
+        if not displayText and text == "-":
+            self.display.insert(text)
+            return
 
         if self._left is not None and self._operator is not None and isValidNumber(displayText):
-            self._right = float(displayText)
+            self._right = convertToNumber(displayText)
             self._equal()
 
         self.display.clear()
@@ -143,8 +155,8 @@ class ButtonsGrid(QGridLayout):
             return
 
         if self._left is None:
-            self._left = float(displayText)
-        
+            self._left = convertToNumber(displayText)
+
         self._operator = text
         self.equation = f"{self._left} {self._operator} ??"
 
@@ -158,21 +170,19 @@ class ButtonsGrid(QGridLayout):
         if not isValidNumber(displayText):
             return
         
-        self._right = float(displayText)
+        self._right = convertToNumber(displayText)
         self.equation = f"{self._left} {self._operator} {self._right}"
         result = 0.0
 
         try:
-            if "^" in self._operator:
+            if "^" in self._operator and isinstance(self._left, int | float):
                 result = pow(self._left, self._right)
             else:
                 result = eval(self.equation)
         except ZeroDivisionError:
-            # self.display.setText("Division by zero")
             self._showError("Division by zero")
             return
         except OverflowError:
-            # self.display.setText("Too large number")
             self._showInfo("Too large number")
             return
 
@@ -183,7 +193,12 @@ class ButtonsGrid(QGridLayout):
         self._operator = None
         self._isEquationFinished = True
         self.display.clear()
-        
+        self.display.setFocus()
+
+    def _backspace(self):
+        self.display.backspace()
+        self.display.setFocus()
+
     def _makeDialog(self, text):
         msgBox = self.window.makeMsgBox()
         msgBox.setWindowTitle("Error")
@@ -194,8 +209,10 @@ class ButtonsGrid(QGridLayout):
         msgBox = self._makeDialog(text)
         msgBox.setIcon(msgBox.Icon.Critical)
         msgBox.exec()
+        self.display.setFocus()
 
     def _showInfo(self, text):
         msgBox = self._makeDialog(text)
         msgBox.setIcon(msgBox.Icon.Information)
         msgBox.exec()
+        self.display.setFocus()
