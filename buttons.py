@@ -113,7 +113,7 @@ class ButtonsGrid(QGridLayout):
         if text == "." and len(self.display.text()) == 0:
             self.display.insert("0")
 
-        if text == "e" and len(self.display.text()) == 0:
+        if text == "e" and (len(self.display.text()) == 0 or self.display.text() == "-"):
             text = str(e)
         
         newDisplayValue = self.display.text() + text
@@ -161,6 +161,8 @@ class ButtonsGrid(QGridLayout):
 
     @Slot()
     def _equal(self):
+        self.display.setFocus()
+
         if self._left is None or self._operator is None:
             return
         
@@ -190,16 +192,18 @@ class ButtonsGrid(QGridLayout):
             return
 
         self.display.setText(str(result))
+
         if self._right < 0:
             self.equation = f"{self._left} {self._operator} ({self._right}) = {result}"
         else:
             self.equation = f"{self._left} {self._operator} {self._right} = {result}"
+
         self._left = result
         self._right = None
         self._operator = None
         self._isEquationFinished = True
         self.display.clear()
-        self.display.setFocus()
+        # self.display.setFocus()
 
     def _backspace(self):
         self.display.backspace()
