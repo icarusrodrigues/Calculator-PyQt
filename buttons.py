@@ -203,7 +203,6 @@ class ButtonsGrid(QGridLayout):
         self._operator = None
         self._isEquationFinished = True
         self.display.clear()
-        # self.display.setFocus()
 
     def _backspace(self):
         self.display.backspace()
