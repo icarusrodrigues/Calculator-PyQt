@@ -112,18 +112,17 @@ class ButtonsGrid(QGridLayout):
         
         if text == "." and len(self.display.text()) == 0:
             self.display.insert("0")
+
+        if text == "e" and len(self.display.text()) == 0:
+            text = str(e)
         
         newDisplayValue = self.display.text() + text
+
+        self.display.setFocus()
 
         if not isValidNumber(newDisplayValue):
             return
         
-        self.display.setFocus()
-
-        if text == "e":
-            self.display.insert(str(e))
-            return
-
         self.display.insert(text)
 
     @Slot()
@@ -141,7 +140,7 @@ class ButtonsGrid(QGridLayout):
         displayText = self.display.text()
         self.display.setFocus()
 
-        if not displayText and text == "-":
+        if not displayText and text == "-" and (not self._isEquationFinished or self._operator is not None):
             self.display.insert(text)
             return
 
@@ -171,7 +170,11 @@ class ButtonsGrid(QGridLayout):
             return
         
         self._right = convertToNumber(displayText)
-        self.equation = f"{self._left} {self._operator} {self._right}"
+        if self._right < 0:
+            self.equation = f"{self._left} {self._operator} ({self._right})"
+        else:
+            self.equation = f"{self._left} {self._operator} {self._right}"
+
         result = 0.0
 
         try:
@@ -187,7 +190,10 @@ class ButtonsGrid(QGridLayout):
             return
 
         self.display.setText(str(result))
-        self.equation = f"{self._left} {self._operator} {self._right} = {result}"
+        if self._right < 0:
+            self.equation = f"{self._left} {self._operator} ({self._right}) = {result}"
+        else:
+            self.equation = f"{self._left} {self._operator} {self._right} = {result}"
         self._left = result
         self._right = None
         self._operator = None
