@@ -5,7 +5,7 @@ Calculator app implemented with Python using the PyQt library
 
 You can run the application executing the file [Calculadora.exe](Calculadora.exe).
 
-But if you want to run the application with Python, follow the following steps, running the commands in your terminal:
+But if you want to run the application with Python, clone this repository and follow the following steps, running the commands in your terminal:
 
 1. Create and activate your virtual environment:
 ```
