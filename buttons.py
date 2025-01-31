@@ -157,7 +157,10 @@ class ButtonsGrid(QGridLayout):
             self._left = convertToNumber(displayText)
 
         self._operator = text
-        self.equation = f"{self._left} {self._operator} ??"
+        if self._left < 0:
+            self.equation = f"({self._left}) {self._operator} ??"
+        else:
+            self.equation = f"{self._left} {self._operator} ??"
 
     @Slot()
     def _equal(self):
@@ -172,11 +175,17 @@ class ButtonsGrid(QGridLayout):
             return
         
         self._right = convertToNumber(displayText)
-        if self._right < 0:
-            self.equation = f"{self._left} {self._operator} ({self._right})"
-        else:
-            self.equation = f"{self._left} {self._operator} {self._right}"
 
+        if self._left < 0:
+            if self._right < 0:
+                self.equation = f"({self._left}) {self._operator} ({self._right})"
+            else:
+                self.equation = f"({self._left}) {self._operator} {self._right}"
+        else:
+            if self._right < 0:
+                self.equation = f"{self._left} {self._operator} ({self._right})"
+            else:
+                self.equation = f"{self._left} {self._operator} {self._right}"
         result = 0.0
 
         try:
@@ -187,16 +196,25 @@ class ButtonsGrid(QGridLayout):
         except ZeroDivisionError:
             self._showError("Division by zero")
             return
+        except ValueError:
+            self._showError("Root of a negative")
+            return
         except OverflowError:
             self._showInfo("Too large number")
             return
 
         self.display.setText(str(result))
 
-        if self._right < 0:
-            self.equation = f"{self._left} {self._operator} ({self._right}) = {result}"
+        if self._left < 0:
+            if self._right < 0:
+                self.equation = f"({self._left}) {self._operator} ({self._right}) = {result}"
+            else:
+                self.equation = f"({self._left}) {self._operator} {self._right} = {result}"
         else:
-            self.equation = f"{self._left} {self._operator} {self._right} = {result}"
+            if self._right < 0:
+                self.equation = f"{self._left} {self._operator} ({self._right}) = {result}"
+            else:
+                self.equation = f"{self._left} {self._operator} {self._right} = {result}"
 
         self._left = result
         self._right = None
